@@ -167,21 +167,47 @@ if (typeof document !== "undefined") (function () {
       tr.children[3].textContent = r.amount !== null ? fmt(r.amount) : "—";
       tb.appendChild(tr);
     });
-    $("wa").href = "https://wa.me/?text=" + encodeURIComponent(resumen());
     if (!$("periodo").value) $("periodo").value = ym(hoy);
     renderTalon();
   }
 
   function resumen() {
     if (!calc || calc.error) return "";
-    const { rows, nowIdx, next } = calc, now = rows[nowIdx];
-    const idx = { ipc: "IPC", fijo: "% fijo", icl: "ICL" }[indice];
-    let t = "Alquiler actualizado (" + idx + ", cada " + $("freq").value + " mes/es)\n";
-    t += "Desde el " + fshort(now.date) + ": " + fmt(now.amount) + "\n";
-    if (next && next.ok) t += "Próximo ajuste " + fshort(next.date) + ": " + fmt(next.amount) + " (+" + fmtPct(next.pct) + ")\n";
-    t += "\nDetalle:\n" + rows.filter(r => r.ok).map(r => fshort(r.date) + " · " + fmt(r.amount) + (r.pct !== null ? " (+" + fmtPct(r.pct) + ")" : "")).join("\n");
-    t += "\n\nCalculado en " + location.host;
-    return t;
+    const { rows, nowIdx, next, hoy, fin, inicio } = calc, now = rows[nowIdx];
+    const f = +$("freq").value;
+    const cada = f === 1 ? "todos los meses" : "cada " + f + " meses";
+    const idx = { ipc: "IPC (inflación)", icl: "ICL", fijo: "% fijo de " + fmtPct(num($("pct").value)) }[indice];
+    const L = [];
+
+    L.push("🏠 *ALQUILER ACTUALIZADO*");
+    const dom = $("domicilio").value.trim();
+    if (dom) L.push(dom);
+
+    L.push("", "📄 *Contrato*");
+    L.push("• Inicio: " + fshort(inicio) + " (" + $("duracion").value + " meses)");
+    L.push("• Ajuste: " + idx + ", " + cada);
+    L.push("• Monto inicial: " + fmt(rows[0].amount));
+
+    const estado = inicio > hoy ? "Arrancás pagando" : hoy >= fin ? "Último monto del contrato" : "Pagás hoy";
+    L.push("", "💰 *" + estado + ": " + fmt(now.amount) + "*");
+    L.push("Vigente desde el " + fshort(now.date));
+    if (nowIdx > 0) L.push("Subió " + fmtPct((now.amount / rows[0].amount - 1) * 100) + " desde el inicio");
+
+    if (next && hoy < fin) {
+      L.push("", "📅 *Próximo ajuste: " + fshort(next.date) + "*");
+      if (next.ok) L.push("Pasa a " + fmt(next.amount) + " (+" + fmtPct(next.pct) + ")");
+      else L.push("Todavía no se publicó el índice para calcularlo");
+    }
+
+    L.push("", "📊 *Historial de ajustes*");
+    rows.forEach((r, i) => {
+      if (!r.ok) return;
+      const det = r.pct !== null ? "+" + fmtPct(r.pct) : "inicial";
+      L.push(fshort(r.date) + " → " + fmt(r.amount) + " (" + det + ")" + (i === nowIdx && inicio <= hoy && hoy < fin ? " ◀ actual" : ""));
+    });
+
+    L.push("", "_Calculado en " + (location.host || "Alquiler al Día") + "_");
+    return L.join("\n");
   }
 
   function montoPeriodo() {
@@ -249,6 +275,14 @@ if (typeof document !== "undefined") (function () {
     navigator.clipboard.writeText(resumen())
       .then(() => { $("st1").textContent = "Resumen copiado."; })
       .catch(() => { $("st1").textContent = "No se pudo copiar automáticamente. Usá el botón de WhatsApp."; });
+  });
+  $("wa").addEventListener("click", () => {
+    const t = resumen();
+    if (!t) { $("st1").textContent = "Completá los datos del contrato para poder mandarlo."; return; }
+    const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(t);
+    const w = window.open(url, "_blank");
+    if (w) w.opener = null;
+    else location.href = url; // si el navegador bloquea la pestaña nueva, abre en la misma
   });
 
   Promise.all([getJSON("data/ipc.json"), getJSON("data/icl.json")]).then(([ipc, icl]) => {
