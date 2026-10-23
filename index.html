@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de aumento de alquiler por IPC e ICL | Alquiler al Día</title>
+<meta name="description" content="Calculá gratis cuánto te aumenta el alquiler con IPC, ICL o porcentaje fijo. Ves cada ajuste paso a paso, el próximo aumento y descargás el recibo en PDF. Sin registrarte.">
+<link rel="canonical" href="https://alquiler-por-mes.vercel.app/">
+<meta name="theme-color" content="#1B5B8E">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="¿Cuánto pago de alquiler este mes?">
+<meta property="og:description" content="Calculadora gratis de aumento de alquiler por IPC e ICL, con recibo en PDF.">
+<meta property="og:url" content="https://alquiler-por-mes.vercel.app/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B5B8E'/%3E%3Cpath d='M8 16l8-7 8 7v8h-5v-5h-6v5H8z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","name":"Alquiler al Día","url":"https://alquiler-por-mes.vercel.app/","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"es-AR","offers":{"@type":"Offer","price":"0","priceCurrency":"ARS"},"description":"Calculadora de aumento de alquiler por IPC, ICL o porcentaje fijo, con recibo en PDF."},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"¿Cómo se calcula el aumento del alquiler por IPC?","acceptedAnswer":{"@type":"Answer","text":"Se multiplican las variaciones mensuales de inflación del período que corresponde al ajuste. Por ejemplo, con ajuste trimestral se acumulan los últimos tres meses de IPC publicados por el INDEC y se aplica ese porcentaje al alquiler vigente."}},
+{"@type":"Question","name":"¿Qué es el ICL?","acceptedAnswer":{"@type":"Answer","text":"Es el Índice para Contratos de Locación que publica el Banco Central todos los días. Combina inflación y salarios en partes iguales. Lo usan los contratos firmados bajo la Ley 27.551."}},
+{"@type":"Question","name":"¿Cómo calculo el aumento con el ICL?","acceptedAnswer":{"@type":"Answer","text":"Se divide el ICL del día del ajuste por el ICL del día de inicio del contrato (o del último ajuste) y se multiplica ese resultado por el alquiler vigente."}}
+]}]}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./">Alquiler al Día</a>
+    <h1>¿Cuánto pago de alquiler este mes?</h1>
+    <p>Cargá los datos de tu contrato y te calculamos el monto actualizado, cada ajuste paso a paso y el recibo listo para mandar. Gratis y sin registrarte.</p>
+  </header>
+
+  <main class="grid">
+    <form class="panel" id="form" autocomplete="off">
+      <div class="label">Tu contrato</div>
+      <div class="field">
+        <label for="monto">Alquiler inicial (en pesos)</label>
+        <input id="monto" inputmode="numeric" value="450.000">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="inicio">Inicio del contrato</label>
+          <input id="inicio" type="date" value="2025-11-01">
+        </div>
+        <div class="field">
+          <label for="duracion">Duración</label>
+          <select id="duracion">
+            <option value="12">12 meses</option>
+            <option value="24" selected>24 meses</option>
+            <option value="36">36 meses</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <span class="flabel" id="indiceLbl">Cómo se ajusta</span>
+        <div class="seg" id="indice" role="group" aria-labelledby="indiceLbl">
+          <button type="button" data-v="ipc" aria-pressed="true">IPC (inflación)</button>
+          <button type="button" data-v="icl" aria-pressed="false">ICL</button>
+          <button type="button" data-v="fijo" aria-pressed="false">% fijo</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="freq">Cada cuánto ajusta</label>
+        <select id="freq">
+          <option value="1">Todos los meses</option>
+          <option value="2">Cada 2 meses</option>
+          <option value="3" selected>Cada 3 meses</option>
+          <option value="4">Cada 4 meses</option>
+          <option value="6">Cada 6 meses</option>
+          <option value="12">Cada 12 meses</option>
+        </select>
+      </div>
+      <div class="field" id="f-fijo" hidden>
+        <label for="pct">Porcentaje de cada ajuste</label>
+        <input id="pct" inputmode="decimal" value="8">
+      </div>
+      <div id="f-icl-manual" class="row2" hidden>
+        <div class="field">
+          <label for="icl0">ICL al inicio</label>
+          <input id="icl0" inputmode="decimal" placeholder="ej. 28,15">
+        </div>
+        <div class="field">
+          <label for="icl1">ICL al ajuste</label>
+          <input id="icl1" inputmode="decimal" placeholder="ej. 37,00">
+        </div>
+        <p class="hint" style="grid-column:1/-1">No pudimos cargar los valores del ICL. Podés copiarlos del <a href="https://www.bcra.gob.ar/PublicacionesEstadisticas/Principales" target="_blank" rel="noopener">Banco Central</a>.</p>
+      </div>
+      <p class="hint" id="dataHint"></p>
+    </form>
+
+    <section class="panel" aria-live="polite">
+      <div class="label">Resultado</div>
+      <div class="hero">
+        <span id="heroTxt" class="det" style="font-size:15px">Cargando índices…</span>
+        <span class="big money" id="heroMonto"></span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Desde</th><th>Cálculo</th><th class="num">Aumento</th><th class="num">Pagás</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="btns">
+        <button class="btn ghost" type="button" id="wa">Mandar por WhatsApp</button>
+        <button class="btn ghost" type="button" id="copiar">Copiar resumen</button>
+      </div>
+      <div class="status" id="st1"></div>
+    </section>
+  </main>
+
+  <!-- Cafecito -->
+  <section class="panel cafe" id="cafecito">
+    <div class="cafe-txt">
+      <div class="label">Apoyá el proyecto</div>
+      <p class="cafe-title">¿Te sirvió la calculadora?</p>
+      <p class="hint">Es gratis y sin publicidad. Si te ahorró tiempo, podés invitarme un cafecito para mantenerla actualizada.</p>
+    </div>
+    <a class="btn" id="cafecito-link" href="https://cafecito.app/sitios-web-cafecito" target="_blank" rel="noopener">☕ Invitame un cafecito</a>
+  </section>
+
+  <section class="panel" id="recibo">
+    <div class="label">Recibo de alquiler</div>
+    <div class="recibo-grid">
+      <div style="display:grid;gap:14px">
+        <div class="row2">
+          <div class="field"><label for="locatario">Recibí de (inquilino)</label><input id="locatario" placeholder="Nombre del inquilino"></div>
+          <div class="field"><label for="locador">Firma (propietario)</label><input id="locador" placeholder="Nombre del propietario"></div>
+        </div>
+        <div class="field"><label for="domicilio">Domicilio del inmueble</label><input id="domicilio" placeholder="Calle, número, piso, ciudad"></div>
+        <div class="row2">
+          <div class="field"><label for="periodo">Mes que se paga</label><input id="periodo" type="month"></div>
+          <div class="field"><label for="nro">Recibo N°</label><input id="nro" inputmode="numeric" value="1"></div>
+        </div>
+        <div class="btns"><button class="btn" type="button" id="pdf">Descargar recibo en PDF</button></div>
+        <div class="status" id="st2"></div>
+      </div>
+      <div class="talon" id="talon"></div>
+    </div>
+  </section>
+
+  <article>
+    <h2>Cómo se calcula el aumento del alquiler</h2>
+    <h3>Ajuste por IPC (inflación)</h3>
+    <p>Se acumula la inflación mensual que publica el INDEC durante el período del ajuste y se aplica sobre el alquiler vigente. Con ajuste trimestral, por ejemplo, se usan tres meses de IPC. Como el INDEC publica cada dato a mediados del mes siguiente, la calculadora usa los últimos meses ya publicados al momento de cada ajuste y te muestra cuáles usó.</p>
+    <h3>Ajuste por ICL</h3>
+    <p>El Índice para Contratos de Locación lo publica el Banco Central todos los días y combina inflación y salarios en partes iguales. Para calcular el aumento se divide el ICL del día del ajuste por el ICL del día de inicio (o del último ajuste) y se multiplica por el alquiler. Lo usan los contratos firmados bajo la Ley 27.551.</p>
+    <h3>Ajuste por porcentaje fijo</h3>
+    <p>Desde la derogación de la ley de alquileres, las partes pueden pactar libremente cómo se ajusta. Si tu contrato fija un porcentaje en cada período, elegí "% fijo" y cargalo.</p>
+    <h2>Preguntas frecuentes</h2>
+    <h3>¿Los datos están actualizados?</h3>
+    <p>Sí. El IPC y el ICL se actualizan automáticamente todos los días desde fuentes oficiales. Arriba del resultado ves hasta qué fecha hay datos.</p>
+    <h3>¿Guardan mis datos?</h3>
+    <p>No. Todo se calcula en tu navegador. Lo único que se guarda es lo que cargaste, en tu propio dispositivo, para que no tengas que escribirlo de nuevo.</p>
+  </article>
+
+  <footer>
+    Alquiler al Día es una herramienta informativa. Revisá siempre lo que dice tu contrato: algunos usan otros meses o redondeos. No reemplaza asesoramiento legal. Fuentes: INDEC y Banco Central de la República Argentina.
+  </footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
