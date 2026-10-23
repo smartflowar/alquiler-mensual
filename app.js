@@ -259,7 +259,11 @@ if (typeof document !== "undefined") (function () {
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setDrawColor(120); doc.line(W - 86, 122, W - 16, 122);
     doc.setTextColor(110); doc.text(v("locador") || "Firma del propietario", W - 51, 128, { align: "center" });
     doc.save("recibo-alquiler-" + ($("periodo").value || "mes") + ".pdf");
-    st.textContent = "Recibo descargado.";
+    st.textContent = "Recibo descargado. ";
+    const link = document.createElement("a");
+    link.href = $("cafecito-link").href; link.target = "_blank"; link.rel = "noopener";
+    link.textContent = "¿Te sirvió? Invitame un cafecito ☕";
+    st.appendChild(link);
   }
 
   async function getJSON(url) {

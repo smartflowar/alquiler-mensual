@@ -47,9 +47,10 @@ Si una fuente falla un día, se conservan los datos anteriores y se reintenta al
 1. Entrá a [Google Search Console](https://search.google.com/search-console), agregá tu dominio y verificalo.
 2. En "Sitemaps" cargá `sitemap.xml`.
 
-### 6. Ganar plata con publicidad
-1. Cuando el sitio tenga algunas semanas y algo de tráfico, pedí el alta en [Google AdSense](https://adsense.google.com).
-2. Cuando te aprueben, pegá el script que te dan donde lo indica el comentario en `index.html` y usá el espacio `ad-1` para el anuncio.
+### 6. Recibir aportes con Cafecito
+1. Creá una cuenta en [cafecito.app](https://cafecito.app) y elegí tu usuario.
+2. En `index.html`, buscá `TU-USUARIO` y reemplazalo por tu usuario (queda `https://cafecito.app/tuusuario`).
+3. El botón aparece debajo del resultado y también después de descargar el recibo en PDF.
 
 ## Probarlo en tu computadora
 Abrí una terminal en la carpeta y corré `npx serve` (o `python3 -m http.server`). Después entrá a la dirección que te muestra. Abrir `index.html` con doble clic no carga los índices, porque el navegador bloquea leer archivos locales.
