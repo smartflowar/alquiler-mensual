@@ -114,14 +114,9 @@
     </section>
   </main>
 
-  <!-- Cafecito -->
-  <section class="panel cafe" id="cafecito">
-    <div class="cafe-txt">
-      <div class="label">Apoyá el proyecto</div>
-      <p class="cafe-title">¿Te sirvió la calculadora?</p>
-      <p class="hint">Es gratis y sin publicidad. Si te ahorró tiempo, podés invitarme un cafecito para mantenerla actualizada.</p>
-    </div>
-    <a class="btn" id="cafecito-link" href="https://cafecito.app/sitios-web-cafecito" target="_blank" rel="noopener">☕ Invitame un cafecito</a>
+  <section class="panel cafe" id="apoyo">
+    <div><div class="label">Apoyá el proyecto</div><p style="margin:4px 0 0">¿Te sirvió? Invitame un cafecito con una transferencia al alias <b style="font-family:monospace;font-size:1.1em">campa1234</b> desde tu banco o Mercado Pago.</p><p class="hint" id="aliasSt" aria-live="polite" style="margin-top:6px"></p></div>
+    <button class="btn" type="button" id="aliasBtn">☕ Copiar alias</button>
   </section>
 
   <section class="panel" id="recibo">
@@ -165,5 +160,13 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="app.js" defer></script>
+<script>
+(function(){var b=document.getElementById("aliasBtn"),s=document.getElementById("aliasSt");if(!b)return;
+var txt="Transferí al alias campa1234 desde la app de tu banco o Mercado Pago. ¡Gracias!";
+b.addEventListener("click",function(){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText("campa1234").then(function(){s.textContent="Alias copiado. Abrí la app de tu banco o Mercado Pago, tocá Transferir y pegalo: campa1234. ¡Gracias!";b.textContent="✓ Alias copiado";},function(){s.textContent=txt;});}
+  else s.textContent=txt;
+});})();
+</script>
 </body>
 </html>
